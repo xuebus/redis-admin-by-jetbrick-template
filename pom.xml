@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mauersu</groupId>
-    <artifactId>redis-admin</artifactId>
+    <artifactId>redis-admin-by-jetbrick-template</artifactId>
     <version>0.0.2.Beta2-SNAPSHOT</version>
     <packaging>war</packaging>
 
@@ -10,7 +10,7 @@
     <description>redis admin</description>
 	
 	<scm>
-		<developerConnection>scm:git:ssh://git@github.com/mauersu/redis-admin.git</developerConnection>
+		<developerConnection>scm:git:ssh://git@github.com/xuebusi/redis-admin-by-jetbrick-template.git</developerConnection>
 	  <tag>HEAD</tag>
   </scm>
 	
