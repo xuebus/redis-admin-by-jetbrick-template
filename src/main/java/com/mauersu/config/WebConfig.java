@@ -38,17 +38,17 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/dist/**").addResourceLocations("dist/");
         registry.addResourceHandler("/bower_components/**").addResourceLocations("bower_components/");
         registry.addResourceHandler("/sb-admin/**").addResourceLocations("sb-admin/");
-        
+
     }
 
     @Bean
     public InternalResourceViewResolver viewResolver() {
-    	InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
+        InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
         internalResourceViewResolver.setOrder(1);
         internalResourceViewResolver.setContentType("text/html; charset=utf-8");
         internalResourceViewResolver.setSuffix(".jsp");
         internalResourceViewResolver.setPrefix("/WEB-INF/view/");
         return internalResourceViewResolver;
     }
-    
+
 }

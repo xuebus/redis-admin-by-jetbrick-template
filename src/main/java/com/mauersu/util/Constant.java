@@ -12,10 +12,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public interface Constant {
 
     Map<String, RedisTemplate> redisTemplatesMap = new HashMap<>();
-    Map<String, CopyOnWriteArrayList<RKey>> redisKeysListMap = new HashMap<String, CopyOnWriteArrayList<RKey>>();
+    Map<String, CopyOnWriteArrayList<RKey>> redisKeysListMap = new HashMap<>();
     Map<RKey, Object> redisVMCache = new ConcurrentHashMap<RKey, Object>();
-    CopyOnWriteArrayList<ZNode> redisNavigateZtree = new CopyOnWriteArrayList<ZNode>();
-    CopyOnWriteArrayList<Map<String, Object>> redisServerCache = new CopyOnWriteArrayList<Map<String, Object>>();
+    CopyOnWriteArrayList<ZNode> redisNavigateZtree = new CopyOnWriteArrayList<>();
+    CopyOnWriteArrayList<Map<String, Object>> redisServerCache = new CopyOnWriteArrayList<>();
 
     int DEFAULT_ITEMS_PER_PAGE = 10;
     String DEFAULT_REDISKEY_SEPARATOR = ":";

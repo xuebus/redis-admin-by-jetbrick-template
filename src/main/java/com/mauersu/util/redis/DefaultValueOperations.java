@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2014 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,13 +15,6 @@
  */
 package com.mauersu.util.redis;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
@@ -29,243 +22,252 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Default implementation of {@link ValueOperations}.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
-	DefaultValueOperations(RedisTemplate<K, V> template) {
-		super(template);
-	}
-	private volatile int dbIndex;
-	DefaultValueOperations(RedisTemplate<K, V> template, int dbIndex) {
-		super(template);
-		this.dbIndex = dbIndex;
-	}
+    DefaultValueOperations(RedisTemplate<K, V> template) {
+        super(template);
+    }
 
-	public V get(final Object key) {
+    private volatile int dbIndex;
 
-		return execute(new ValueDeserializingRedisCallback(key) {
+    DefaultValueOperations(RedisTemplate<K, V> template, int dbIndex) {
+        super(template);
+        this.dbIndex = dbIndex;
+    }
 
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.get(rawKey);
-			}
-		}, true);
-	}
+    public V get(final Object key) {
 
-	public V getAndSet(K key, V newValue) {
-		final byte[] rawValue = rawValue(newValue);
-		return execute(new ValueDeserializingRedisCallback(key) {
+        return execute(new ValueDeserializingRedisCallback(key) {
 
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.getSet(rawKey, rawValue);
-			}
-		}, true);
-	}
+            protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.get(rawKey);
+            }
+        }, true);
+    }
 
-	public Long increment(K key, final long delta) {
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Long>() {
+    public V getAndSet(K key, V newValue) {
+        final byte[] rawValue = rawValue(newValue);
+        return execute(new ValueDeserializingRedisCallback(key) {
 
-			public Long doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.incrBy(rawKey, delta);
-			}
-		}, true);
-	}
+            protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.getSet(rawKey, rawValue);
+            }
+        }, true);
+    }
 
-	public Double increment(K key, final double delta) {
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Double>() {
-			public Double doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.incrBy(rawKey, delta);
-			}
-		}, true);
-	}
+    public Long increment(K key, final long delta) {
+        final byte[] rawKey = rawKey(key);
+        return execute(new RedisCallback<Long>() {
 
-	public Integer append(K key, String value) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawString = rawString(value);
+            public Long doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.incrBy(rawKey, delta);
+            }
+        }, true);
+    }
 
-		return execute(new RedisCallback<Integer>() {
+    public Double increment(K key, final double delta) {
+        final byte[] rawKey = rawKey(key);
+        return execute(new RedisCallback<Double>() {
+            public Double doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.incrBy(rawKey, delta);
+            }
+        }, true);
+    }
 
-			public Integer doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				final Long result = connection.append(rawKey, rawString); 				
-				return ( result != null ) ? result.intValue() : null; 
-			}
-		}, true);
-	}
+    public Integer append(K key, String value) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawString = rawString(value);
 
-	public String get(K key, final long start, final long end) {
-		final byte[] rawKey = rawKey(key);
+        return execute(new RedisCallback<Integer>() {
 
-		byte[] rawReturn = execute(new RedisCallback<byte[]>() {
+            public Integer doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                final Long result = connection.append(rawKey, rawString);
+                return (result != null) ? result.intValue() : null;
+            }
+        }, true);
+    }
 
-			public byte[] doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.getRange(rawKey, start, end);
-			}
-		}, true);
+    public String get(K key, final long start, final long end) {
+        final byte[] rawKey = rawKey(key);
 
-		return deserializeString(rawReturn);
-	}
+        byte[] rawReturn = execute(new RedisCallback<byte[]>() {
 
-	public List<V> multiGet(Collection<K> keys) {
-		if (keys.isEmpty()) {
-			return Collections.emptyList();
-		}
+            public byte[] doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.getRange(rawKey, start, end);
+            }
+        }, true);
 
-		final byte[][] rawKeys = new byte[keys.size()][];
+        return deserializeString(rawReturn);
+    }
 
-		int counter = 0;
-		for (K hashKey : keys) {
-			rawKeys[counter++] = rawKey(hashKey);
-		}
+    public List<V> multiGet(Collection<K> keys) {
+        if (keys.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+        final byte[][] rawKeys = new byte[keys.size()][];
 
-			public List<byte[]> doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.mGet(rawKeys);
-			}
-		}, true);
+        int counter = 0;
+        for (K hashKey : keys) {
+            rawKeys[counter++] = rawKey(hashKey);
+        }
 
-		return deserializeValues(rawValues);
-	}
+        List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
 
-	public void multiSet(Map<? extends K, ? extends V> m) {
-		if (m.isEmpty()) {
-			return;
-		}
+            public List<byte[]> doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.mGet(rawKeys);
+            }
+        }, true);
 
-		final Map<byte[], byte[]> rawKeys = new LinkedHashMap<byte[], byte[]>(m.size());
+        return deserializeValues(rawValues);
+    }
 
-		for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
-			rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
-		}
+    public void multiSet(Map<? extends K, ? extends V> m) {
+        if (m.isEmpty()) {
+            return;
+        }
 
-		execute(new RedisCallback<Object>() {
+        final Map<byte[], byte[]> rawKeys = new LinkedHashMap<byte[], byte[]>(m.size());
 
-			public Object doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				connection.mSet(rawKeys);
-				return null;
-			}
-		}, true);
-	}
+        for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+            rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
+        }
 
-	public Boolean multiSetIfAbsent(Map<? extends K, ? extends V> m) {
-		if (m.isEmpty()) {
-			return true;
-		}
+        execute(new RedisCallback<Object>() {
 
-		final Map<byte[], byte[]> rawKeys = new LinkedHashMap<byte[], byte[]>(m.size());
+            public Object doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                connection.mSet(rawKeys);
+                return null;
+            }
+        }, true);
+    }
 
-		for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
-			rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
-		}
+    public Boolean multiSetIfAbsent(Map<? extends K, ? extends V> m) {
+        if (m.isEmpty()) {
+            return true;
+        }
 
-		return execute(new RedisCallback<Boolean>() {
+        final Map<byte[], byte[]> rawKeys = new LinkedHashMap<byte[], byte[]>(m.size());
 
-			public Boolean doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.mSetNX(rawKeys);
-			}
-		}, true);
-	}
+        for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+            rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
+        }
 
-	public void set(K key, V value) {
-		final byte[] rawValue = rawValue(value);
-		execute(new ValueDeserializingRedisCallback(key) {
+        return execute(new RedisCallback<Boolean>() {
 
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				connection.select(dbIndex);
-				connection.set(rawKey, rawValue);
-				return null;
-			}
-		}, true);
-	}
+            public Boolean doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.mSetNX(rawKeys);
+            }
+        }, true);
+    }
 
-	public void set(K key, V value, final long timeout, final TimeUnit unit) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(value);
+    public void set(K key, V value) {
+        final byte[] rawValue = rawValue(value);
+        execute(new ValueDeserializingRedisCallback(key) {
 
-		execute(new RedisCallback<Object>() {
+            protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+                connection.select(dbIndex);
+                connection.set(rawKey, rawValue);
+                return null;
+            }
+        }, true);
+    }
 
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.select(dbIndex);
-				potentiallyUsePsetEx(connection);
-				return null;
-			}
+    public void set(K key, V value, final long timeout, final TimeUnit unit) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawValue = rawValue(value);
 
-			public void potentiallyUsePsetEx(RedisConnection connection) {
+        execute(new RedisCallback<Object>() {
 
-				if (!TimeUnit.MILLISECONDS.equals(unit) || !failsafeInvokePsetEx(connection)) {
-					connection.select(dbIndex);
-					connection.setEx(rawKey, TimeoutUtils.toSeconds(timeout, unit), rawValue);
-				}
-			}
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                connection.select(dbIndex);
+                potentiallyUsePsetEx(connection);
+                return null;
+            }
 
-			private boolean failsafeInvokePsetEx(RedisConnection connection) {
+            public void potentiallyUsePsetEx(RedisConnection connection) {
 
-				boolean failed = false;
-				try {
-					connection.select(dbIndex);
-					connection.pSetEx(rawKey, timeout, rawValue);
-				} catch (UnsupportedOperationException e) {
-					// in case the connection does not support pSetEx return false to allow fallback to other operation.
-					failed = true;
-				}
-				return !failed;
-			}
+                if (!TimeUnit.MILLISECONDS.equals(unit) || !failsafeInvokePsetEx(connection)) {
+                    connection.select(dbIndex);
+                    connection.setEx(rawKey, TimeoutUtils.toSeconds(timeout, unit), rawValue);
+                }
+            }
 
-		}, true);
-	}
+            private boolean failsafeInvokePsetEx(RedisConnection connection) {
 
-	public Boolean setIfAbsent(K key, V value) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(value);
+                boolean failed = false;
+                try {
+                    connection.select(dbIndex);
+                    connection.pSetEx(rawKey, timeout, rawValue);
+                } catch (UnsupportedOperationException e) {
+                    // in case the connection does not support pSetEx return false to allow fallback to other operation.
+                    failed = true;
+                }
+                return !failed;
+            }
 
-		return execute(new RedisCallback<Boolean>() {
+        }, true);
+    }
 
-			public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.select(dbIndex);
-				return connection.setNX(rawKey, rawValue);
-			}
-		}, true);
-	}
+    public Boolean setIfAbsent(K key, V value) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawValue = rawValue(value);
 
-	public void set(K key, final V value, final long offset) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(value);
+        return execute(new RedisCallback<Boolean>() {
 
-		execute(new RedisCallback<Object>() {
+            public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+                connection.select(dbIndex);
+                return connection.setNX(rawKey, rawValue);
+            }
+        }, true);
+    }
 
-			public Object doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				connection.setRange(rawKey, rawValue, offset);
-				return null;
-			}
-		}, true);
-	}
+    public void set(K key, final V value, final long offset) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawValue = rawValue(value);
 
-	public Long size(K key) {
-		final byte[] rawKey = rawKey(key);
+        execute(new RedisCallback<Object>() {
 
-		return execute(new RedisCallback<Long>() {
+            public Object doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                connection.setRange(rawKey, rawValue, offset);
+                return null;
+            }
+        }, true);
+    }
 
-			public Long doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.strLen(rawKey);
-			}
-		}, true);
-	}
+    public Long size(K key) {
+        final byte[] rawKey = rawKey(key);
+
+        return execute(new RedisCallback<Long>() {
+
+            public Long doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.strLen(rawKey);
+            }
+        }, true);
+    }
 }

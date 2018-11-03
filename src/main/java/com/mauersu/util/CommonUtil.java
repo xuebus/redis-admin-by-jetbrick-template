@@ -7,13 +7,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonUtil {
 
-	@Autowired
-	private Environment env;
-	
-	public String getProperty(String key) {
-		String value = env.getProperty(key);
-		return value;
-	}
-	
-	
+    @Autowired
+    private Environment env;
+
+    public String getProperty(String key) {
+        String value = env.getProperty(key);
+        return value;
+    }
+
+
 }

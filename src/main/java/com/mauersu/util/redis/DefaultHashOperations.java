@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2014 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 package com.mauersu.util.redis;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -33,265 +25,276 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 /**
  * Default implementation of {@link HashOperations}.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  */
 class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
 
-	@SuppressWarnings("unchecked")
-	DefaultHashOperations(RedisTemplate<K, ?> template) {
-		super((RedisTemplate<K, Object>) template);
-	}
-	private volatile int dbIndex;
-	DefaultHashOperations(RedisTemplate<K, ?> template, int dbIndex) {
-		super((RedisTemplate<K, Object>) template);
-		this.dbIndex = dbIndex;
-	}
-	@SuppressWarnings("unchecked")
-	public HV get(K key, Object hashKey) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
+    @SuppressWarnings("unchecked")
+    DefaultHashOperations(RedisTemplate<K, ?> template) {
+        super((RedisTemplate<K, Object>) template);
+    }
 
-		byte[] rawHashValue = execute(new RedisCallback<byte[]>() {
+    private volatile int dbIndex;
 
-			public byte[] doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hGet(rawKey, rawHashKey);
-			}
-		}, true);
+    DefaultHashOperations(RedisTemplate<K, ?> template, int dbIndex) {
+        super((RedisTemplate<K, Object>) template);
+        this.dbIndex = dbIndex;
+    }
 
-		return (HV) deserializeHashValue(rawHashValue);
-	}
+    @SuppressWarnings("unchecked")
+    public HV get(K key, Object hashKey) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawHashKey = rawHashKey(hashKey);
 
-	public Boolean hasKey(K key, Object hashKey) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
+        byte[] rawHashValue = execute(new RedisCallback<byte[]>() {
 
-		return execute(new RedisCallback<Boolean>() {
+            public byte[] doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hGet(rawKey, rawHashKey);
+            }
+        }, true);
 
-			public Boolean doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hExists(rawKey, rawHashKey);
-			}
-		}, true);
-	}
+        return (HV) deserializeHashValue(rawHashValue);
+    }
 
-	public Long increment(K key, HK hashKey, final long delta) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
+    public Boolean hasKey(K key, Object hashKey) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawHashKey = rawHashKey(hashKey);
 
-		return execute(new RedisCallback<Long>() {
+        return execute(new RedisCallback<Boolean>() {
 
-			public Long doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hIncrBy(rawKey, rawHashKey, delta);
-			}
-		}, true);
+            public Boolean doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hExists(rawKey, rawHashKey);
+            }
+        }, true);
+    }
 
-	}
+    public Long increment(K key, HK hashKey, final long delta) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawHashKey = rawHashKey(hashKey);
 
-	public Double increment(K key, HK hashKey, final double delta) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
+        return execute(new RedisCallback<Long>() {
 
-		return execute(new RedisCallback<Double>() {
-			public Double doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hIncrBy(rawKey, rawHashKey, delta);
-			}
-		}, true);
-	}
+            public Long doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hIncrBy(rawKey, rawHashKey, delta);
+            }
+        }, true);
 
-	public Set<HK> keys(K key) {
-		final byte[] rawKey = rawKey(key);
+    }
 
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+    public Double increment(K key, HK hashKey, final double delta) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawHashKey = rawHashKey(hashKey);
 
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hKeys(rawKey);
-			}
-		}, true);
+        return execute(new RedisCallback<Double>() {
+            public Double doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hIncrBy(rawKey, rawHashKey, delta);
+            }
+        }, true);
+    }
 
-		return deserializeHashKeys(rawValues);
-	}
+    public Set<HK> keys(K key) {
+        final byte[] rawKey = rawKey(key);
 
-	public Long size(K key) {
-		final byte[] rawKey = rawKey(key);
+        Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 
-		return execute(new RedisCallback<Long>() {
+            public Set<byte[]> doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hKeys(rawKey);
+            }
+        }, true);
 
-			public Long doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hLen(rawKey);
-			}
-		}, true);
-	}
+        return deserializeHashKeys(rawValues);
+    }
 
-	public void putAll(K key, Map<? extends HK, ? extends HV> m) {
-		if (m.isEmpty()) {
-			return;
-		}
+    public Long size(K key) {
+        final byte[] rawKey = rawKey(key);
 
-		final byte[] rawKey = rawKey(key);
+        return execute(new RedisCallback<Long>() {
 
-		final Map<byte[], byte[]> hashes = new LinkedHashMap<byte[], byte[]>(m.size());
+            public Long doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hLen(rawKey);
+            }
+        }, true);
+    }
 
-		for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
-			hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
-		}
+    public void putAll(K key, Map<? extends HK, ? extends HV> m) {
+        if (m.isEmpty()) {
+            return;
+        }
 
-		execute(new RedisCallback<Object>() {
+        final byte[] rawKey = rawKey(key);
 
-			public Object doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				connection.hMSet(rawKey, hashes);
-				return null;
-			}
-		}, true);
-	}
+        final Map<byte[], byte[]> hashes = new LinkedHashMap<byte[], byte[]>(m.size());
 
-	public List<HV> multiGet(K key, Collection<HK> fields) {
-		if (fields.isEmpty()) {
-			return Collections.emptyList();
-		}
+        for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
+            hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
+        }
 
-		final byte[] rawKey = rawKey(key);
+        execute(new RedisCallback<Object>() {
 
-		final byte[][] rawHashKeys = new byte[fields.size()][];
+            public Object doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                connection.hMSet(rawKey, hashes);
+                return null;
+            }
+        }, true);
+    }
 
-		int counter = 0;
-		for (HK hashKey : fields) {
-			rawHashKeys[counter++] = rawHashKey(hashKey);
-		}
+    public List<HV> multiGet(K key, Collection<HK> fields) {
+        if (fields.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+        final byte[] rawKey = rawKey(key);
 
-			public List<byte[]> doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hMGet(rawKey, rawHashKeys);
-			}
-		}, true);
+        final byte[][] rawHashKeys = new byte[fields.size()][];
 
-		return deserializeHashValues(rawValues);
-	}
+        int counter = 0;
+        for (HK hashKey : fields) {
+            rawHashKeys[counter++] = rawHashKey(hashKey);
+        }
 
-	public void put(K key, HK hashKey, HV value) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
-		final byte[] rawHashValue = rawHashValue(value);
+        List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
 
-		execute(new RedisCallback<Object>() {
+            public List<byte[]> doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hMGet(rawKey, rawHashKeys);
+            }
+        }, true);
 
-			public Object doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				connection.hSet(rawKey, rawHashKey, rawHashValue);
-				return null;
-			}
-		}, true);
-	}
+        return deserializeHashValues(rawValues);
+    }
 
-	public Boolean putIfAbsent(K key, HK hashKey, HV value) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
-		final byte[] rawHashValue = rawHashValue(value);
+    public void put(K key, HK hashKey, HV value) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawHashKey = rawHashKey(hashKey);
+        final byte[] rawHashValue = rawHashValue(value);
 
-		return execute(new RedisCallback<Boolean>() {
+        execute(new RedisCallback<Object>() {
 
-			public Boolean doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hSetNX(rawKey, rawHashKey, rawHashValue);
-			}
-		}, true);
-	}
+            public Object doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                connection.hSet(rawKey, rawHashKey, rawHashValue);
+                return null;
+            }
+        }, true);
+    }
 
-	public List<HV> values(K key) {
-		final byte[] rawKey = rawKey(key);
+    public Boolean putIfAbsent(K key, HK hashKey, HV value) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawHashKey = rawHashKey(hashKey);
+        final byte[] rawHashValue = rawHashValue(value);
 
-		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+        return execute(new RedisCallback<Boolean>() {
 
-			public List<byte[]> doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hVals(rawKey);
-			}
-		}, true);
+            public Boolean doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hSetNX(rawKey, rawHashKey, rawHashValue);
+            }
+        }, true);
+    }
 
-		return deserializeHashValues(rawValues);
-	}
+    public List<HV> values(K key) {
+        final byte[] rawKey = rawKey(key);
 
-	public void delete(K key, Object... hashKeys) {
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawHashKeys = rawHashKeys(hashKeys);
+        List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
 
-		execute(new RedisCallback<Object>() {
+            public List<byte[]> doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hVals(rawKey);
+            }
+        }, true);
 
-			public Object doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				connection.hDel(rawKey, rawHashKeys);
-				return null;
-			}
-		}, true);
-	}
+        return deserializeHashValues(rawValues);
+    }
 
-	public Map<HK, HV> entries(K key) {
-		final byte[] rawKey = rawKey(key);
+    public void delete(K key, Object... hashKeys) {
+        final byte[] rawKey = rawKey(key);
+        final byte[][] rawHashKeys = rawHashKeys(hashKeys);
 
-		Map<byte[], byte[]> entries = execute(new RedisCallback<Map<byte[], byte[]>>() {
+        execute(new RedisCallback<Object>() {
 
-			public Map<byte[], byte[]> doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return connection.hGetAll(rawKey);
-			}
-		}, true);
+            public Object doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                connection.hDel(rawKey, rawHashKeys);
+                return null;
+            }
+        }, true);
+    }
 
-		return deserializeHashMap(entries);
-	}
+    public Map<HK, HV> entries(K key) {
+        final byte[] rawKey = rawKey(key);
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
-	 */
-	@Override
-	public Cursor<Entry<HK, HV>> scan(K key, final ScanOptions options) {
+        Map<byte[], byte[]> entries = execute(new RedisCallback<Map<byte[], byte[]>>() {
 
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
+            public Map<byte[], byte[]> doInRedis(RedisConnection connection) {
+                connection.select(dbIndex);
+                return connection.hGetAll(rawKey);
+            }
+        }, true);
 
-			@Override
-			public Cursor<Entry<HK, HV>> doInRedis(RedisConnection connection) throws DataAccessException {
+        return deserializeHashMap(entries);
+    }
 
-				return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>(connection.hScan(rawKey, options),
-						new Converter<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>() {
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+     */
+    @Override
+    public Cursor<Entry<HK, HV>> scan(K key, final ScanOptions options) {
 
-							@Override
-							public Entry<HK, HV> convert(final Entry<byte[], byte[]> source) {
+        final byte[] rawKey = rawKey(key);
+        return execute(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
 
-								return new Map.Entry<HK, HV>() {
+            @Override
+            public Cursor<Entry<HK, HV>> doInRedis(RedisConnection connection) throws DataAccessException {
 
-									@Override
-									public HK getKey() {
-										return deserializeHashKey(source.getKey());
-									}
+                return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>(connection.hScan(rawKey, options),
+                        new Converter<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>() {
 
-									@Override
-									public HV getValue() {
-										return deserializeHashValue(source.getValue());
-									}
+                            @Override
+                            public Entry<HK, HV> convert(final Entry<byte[], byte[]> source) {
 
-									@Override
-									public HV setValue(HV value) {
-										throw new UnsupportedOperationException("Values cannot be set when scanning through entries.");
-									}
-								};
+                                return new Map.Entry<HK, HV>() {
 
-							}
-						});
-			}
+                                    @Override
+                                    public HK getKey() {
+                                        return deserializeHashKey(source.getKey());
+                                    }
 
-		}, true);
+                                    @Override
+                                    public HV getValue() {
+                                        return deserializeHashValue(source.getValue());
+                                    }
 
-	}
+                                    @Override
+                                    public HV setValue(HV value) {
+                                        throw new UnsupportedOperationException("Values cannot be set when scanning through entries.");
+                                    }
+                                };
+
+                            }
+                        });
+            }
+
+        }, true);
+
+    }
 }

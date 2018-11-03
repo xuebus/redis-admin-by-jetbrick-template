@@ -1,13 +1,12 @@
 package com.mauersu.util;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Set;
 
 public class ConvertUtil {
 
@@ -15,7 +14,7 @@ public class ConvertUtil {
 		StringRedisSerializer stringSerializer = new StringRedisSerializer(Charset.forName("UTF8"));
 		for(byte[] byteArray: keysSet) {
 			String converted = stringSerializer.deserialize(byteArray);
-			DataType dateType = null;
+			DataType dateType;
 			switch(RedisApplication.showType) {
 			case show:
 				dateType = connection.type(byteArray);
