@@ -3,7 +3,7 @@
 	String basePath = request.getContextPath();
 %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<!-- dialog -->
+<!-- dialog: 该对话框会被多个按钮使用, 比如修改/删除/自动刷新/手动刷新等 -->
 <div class="modal modal1 fade" id="myModal">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -11,9 +11,11 @@
 				<button type="button" class="back_btn close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
+				<%--在js中会根据此id将text部分进行替换--%>
 				<h4 class="modal-title" id="model_title">model_title</h4>
 			</div>
 			<div class="modal-body">
+				<%--在js中会根据此id将text部分进行替换--%>
 				<p id="model_content">model_content</p>
 			</div>
 			<div class="modal-footer">

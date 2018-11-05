@@ -26,7 +26,8 @@
 </head>
 
 <body>
-	
+
+	<%--模态窗口: 点击修改/删除/自动刷新/手动刷新等按钮时弹出的提示或警告框--%>
 	<jsp:include page="common/modelDialog.jsp"></jsp:include>
 	
 	<div id="wrapper">
@@ -35,12 +36,14 @@
 		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
 
 			<jsp:include page="header.jsp"></jsp:include>
+			<%--redis服务器节点列表树--%>
 			<jsp:include page="menu.jsp"></jsp:include>
 
 		</nav>
 
 		<div id="page-wrapper">
 			<br>
+			<%--redis列表页--%>
 			<jsp:include page="${viewPage }"></jsp:include>
 		</div>
 		<!-- /#page-wrapper -->

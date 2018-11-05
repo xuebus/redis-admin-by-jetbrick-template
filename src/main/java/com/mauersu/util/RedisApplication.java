@@ -114,18 +114,33 @@ public abstract class RedisApplication implements Constant {
 		}).start();
 	}*/
 
+    /**
+     * 根据配置参数连接redis服务器
+     *
+     * @param name
+     * @param host
+     * @param port
+     * @param password
+     */
     protected void createRedisConnection(String name, String host, int port, String password) {
+
+        // 实例化Jedis连接工厂类
         JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
         connectionFactory.setHostName(host);
         connectionFactory.setPort(port);
         if (!StringUtils.isEmpty(password))
             connectionFactory.setPassword(password);
         connectionFactory.afterPropertiesSet();
+
+        // 实例化redis模板类
         RedisTemplate redisTemplate = new MyStringRedisTemplate();
         redisTemplate.setConnectionFactory(connectionFactory);
         redisTemplate.afterPropertiesSet();
+
+        // 将redis服务器名称和对应的redis模板实例放到Map缓存
         RedisApplication.redisTemplatesMap.put(name, redisTemplate);
 
+        // 将redis服务器节点配置信息缓存到map
         Map<String, Object> redisServerMap = new HashMap<String, Object>();
         redisServerMap.put("name", name);
         redisServerMap.put("host", host);
@@ -138,6 +153,12 @@ public abstract class RedisApplication implements Constant {
         RedisZtreeUtil.initRedisNavigateZtree(name);
     }
 
+    /**
+     * 遍历redis的16个库, 查询所有的key
+     *
+     * @param redisTemplate
+     * @param name
+     */
     private void initRedisKeysCache(RedisTemplate redisTemplate, String name) {
         for (int i = 0; i <= REDIS_DEFAULT_DB_SIZE; i++) {
             initRedisKeysCache(redisTemplate, name, i);
@@ -145,6 +166,13 @@ public abstract class RedisApplication implements Constant {
     }
 
 
+    /**
+     * 在指定的redis库中查询其所有key
+     *
+     * @param redisTemplate
+     * @param serverName
+     * @param dbIndex
+     */
     protected void initRedisKeysCache(RedisTemplate redisTemplate, String serverName, int dbIndex) {
         RedisConnection connection = RedisConnectionUtils.getConnection(redisTemplate.getConnectionFactory());
         connection.select(dbIndex);

@@ -113,6 +113,10 @@ public class RedisController extends RedisApplication implements Constant {
         return WorkcenterResponseBodyJson.custom().build();
     }
 
+    /**
+     * 从缓存中取出所有到key返回给页面,出于性能考虑,这里并没有根据key取查询value,
+     * 而是在页面上通过选择指定的key然后再查询value.
+     */
     @RequestMapping(value = "/stringList/{serverName}/{dbIndex}", method = RequestMethod.GET)
     public Object stringList(HttpServletRequest request, HttpServletResponse response,
                              @PathVariable String serverName, @PathVariable String dbIndex) {
@@ -143,6 +147,9 @@ public class RedisController extends RedisApplication implements Constant {
         request.setAttribute("change2ShowType", showType.getChange2());
         request.setAttribute("showType", showType.getState());
         request.setAttribute("pagination", pagination.createLinkTo());
+
+        // 将"redis/list.jsp"带到main.jsp中再使用<jsp:include page="${viewPage }"></jsp:include>包裹起来
+        // 在上面往request中添加的KV就可以在list.jsp中使用了
         request.setAttribute("viewPage", "redis/list.jsp");
         return "admin/main";
     }
